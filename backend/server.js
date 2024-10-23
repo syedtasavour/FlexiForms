@@ -15,7 +15,9 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL  // Use environment variable in production
+    : 'http://localhost:3000',  // Default to localhost in development
   credentials: true,
 }));
 

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "cd backend && npm start",
-    "heroku-postbuild": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false cd frontend && npm install && npm run build && cd ../backend && npm install",
     "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   },
   "engines": {
