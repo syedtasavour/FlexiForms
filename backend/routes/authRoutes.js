@@ -8,24 +8,46 @@ const User = require('../models/User');
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    console.log('Registration attempt for email:', email);
+    console.log('Registration attempt:', { username, email });
 
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
-      console.log('User already exists:', email);
-      return res.status(400).json({ error: 'User already exists' });
+    // Validate input
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
-    // Create new user with plain text password
-    user = new User({ username, email, password });
+    // Check if user already exists
+    const existingUser = await User.findOne({ 
+      $or: [
+        { email: email.toLowerCase() },
+        { username: username.toLowerCase() }
+      ]
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ 
+        error: 'User with this email or username already exists' 
+      });
+    }
+
+    // Create new user
+    const user = new User({
+      username: username.toLowerCase(),
+      email: email.toLowerCase(),
+      password
+    });
+
     await user.save();
     console.log('User registered successfully:', email);
 
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ 
+      message: 'User registered successfully',
+      user: { id: user._id, username: user.username, email: user.email }
+    });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      error: 'An error occurred during registration' 
+    });
   }
 });
 
