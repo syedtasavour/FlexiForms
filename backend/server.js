@@ -50,7 +50,10 @@ mongoose.connect(MONGODB_URI, {
   useUnifiedTopology: true,
 })
 .then(() => console.log('Connected to MongoDB'))
-.catch((err) => console.error('MongoDB connection error:', err));
+.catch((err) => {
+  console.error('MongoDB connection error:', err);
+  process.exit(1);  // Exit if can't connect to database
+});
 
 // Add this before your routes
 if (process.env.NODE_ENV === 'production') {

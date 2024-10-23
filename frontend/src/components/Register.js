@@ -12,23 +12,35 @@ const Register = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Register the user
-      await axios.post(`${process.env.REACT_APP_API_URL}/auth/register`, { username, email, password });
+      setError(''); // Clear any previous errors
       
-      // If registration is successful, immediately log in
-      const loginResponse = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, { email, password });
+      // First, register the user
+      const registerResponse = await axios.post(`${process.env.NODE_ENV === 'production' ? '/api' : process.env.REACT_APP_API_URL}/auth/register`, {
+        username,
+        email,
+        password
+      });
       
+      console.log('Registration successful:', registerResponse.data);
+
+      // If registration is successful, attempt login
+      const loginResponse = await axios.post(`${process.env.NODE_ENV === 'production' ? '/api' : process.env.REACT_APP_API_URL}/auth/login`, {
+        email,
+        password
+      });
+
       // Save the token and user ID
       localStorage.setItem('token', loginResponse.data.token);
       localStorage.setItem('userId', loginResponse.data.user.id);
       
-      // Call the onLogin function passed from the parent component
+      // Call the onLogin function
       onLogin(loginResponse.data.token);
       
-      // Navigate to the home page
+      // Navigate to home page
       navigate('/');
     } catch (error) {
-      setError(error.response?.data?.error || 'An error occurred during registration');
+      console.error('Registration error:', error.response?.data || error.message);
+      setError(error.response?.data?.error || 'An error occurred during registration. Please try again.');
     }
   };
 
