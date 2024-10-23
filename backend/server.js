@@ -16,21 +16,25 @@ const app = express();
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL  // Use environment variable in production
-    : 'http://localhost:3000',  // Default to localhost in development
+    ? 'https://flexiforms-a2fde1bc3461.herokuapp.com'  // Your Heroku app URL
+    : 'http://localhost:3000',
   credentials: true,
 }));
 
 app.use(bodyParser.json());
 
+// Update uploads directory path for production
+const uploadsDir = process.env.NODE_ENV === 'production'
+  ? path.join(__dirname, 'uploads')
+  : path.join(__dirname, 'uploads');
+
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadsDir));
 
 // Connect to MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/flexiforms';
@@ -47,6 +51,14 @@ mongoose.connect(MONGODB_URI, {
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));
+
+// Add this before your routes
+if (process.env.NODE_ENV === 'production') {
+  app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+  });
+}
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -66,7 +78,7 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 // No rate limiting implementation
 
 // Add after your existing imports
-const path = require('path');
+// const path = require('path');  // Already imported at the top
 
 // Add after your API routes
 if (process.env.NODE_ENV === 'production') {
