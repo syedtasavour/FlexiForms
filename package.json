@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "cd backend && npm start",
-    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false cd frontend && npm install && npm run build && cd ../backend && npm install",
-    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+    "heroku-postbuild": "cd frontend && npm install --legacy-peer-deps && npm run build && cd ../backend && npm install",
+    "install-all": "npm install && cd frontend && npm install --legacy-peer-deps && cd ../backend && npm install"
   },
   "engines": {
     "node": "18.x",
