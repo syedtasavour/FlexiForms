@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../api';  // Import the api instance
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -18,16 +18,24 @@ const Login = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('Attempting login with email:', email);
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, { email, password });
+      setError(''); // Clear any previous errors
+      console.log('Attempting login with:', { email });
+      
+      const response = await api.post('/auth/login', { email, password });
       console.log('Login response:', response.data);
+      
+      // Store token and user data
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userId', response.data.user.id);
+      
+      // Call the onLogin callback
       onLogin(response.data.token);
+      
+      // Navigate to home page
       navigate('/');
     } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
-      setError(error.response?.data?.error || 'An error occurred during login');
+      console.error('Login error:', error.response?.data || error);
+      setError(error.response?.data?.error || 'Failed to login. Please check your credentials.');
     }
   };
 

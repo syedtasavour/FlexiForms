@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const dotenv = require('dotenv');
 const fs = require('fs');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -13,12 +15,14 @@ console.log('Environment variables loaded:', process.env);
 
 const app = express();
 
-// CORS configuration
+// Update CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? 'https://flexiforms-a2fde1bc3461.herokuapp.com'  // Your Heroku app URL
+    ? process.env.FRONTEND_URL 
     : 'http://localhost:3000',
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(bodyParser.json());
@@ -80,6 +84,13 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // No rate limiting implementation
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+
+app.use(limiter);
+
 // Add after your existing imports
 // const path = require('path');  // Already imported at the top
 
@@ -93,3 +104,5 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
   });
 }
+
+app.use(helmet());
