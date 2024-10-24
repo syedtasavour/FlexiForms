@@ -51,31 +51,47 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// User login
+// Login route
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log('Login attempt for email:', email);
     
-    const user = await User.findOne({ email });
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Find user by email (case-insensitive)
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      console.log('User not found for email:', email);
-      return res.status(400).json({ error: 'Invalid email or password' });
+      console.log('User not found:', email);
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    console.log('User found:', user.username);
-    
+    // Compare password
     const validPassword = await bcrypt.compare(password, user.password);
-    console.log('Password comparison result:', validPassword);
-    
     if (!validPassword) {
-      console.log('Invalid password for user:', user.username);
-      return res.status(400).json({ error: 'Invalid email or password' });
+      console.log('Invalid password for user:', email);
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    console.log('Login successful for user:', user.username);
-    res.json({ token, user: { id: user._id, username: user.username, email: user.email } });
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Send response
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email
+      }
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'An error occurred during login' });
